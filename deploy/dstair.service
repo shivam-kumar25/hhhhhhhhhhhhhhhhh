@@ -1,0 +1,47 @@
+# ============================================================
+# DSTAIR — systemd Service Unit
+# Keeps the Gunicorn process alive, restarts on crash,
+# starts automatically on server reboot.
+#
+# USAGE:
+#   sudo cp deploy/dstair.service /etc/systemd/system/dstair.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable dstair
+#   sudo systemctl start dstair
+#   sudo systemctl status dstair
+#
+# Adjust User, WorkingDirectory, and ExecStart paths as needed.
+# ============================================================
+
+[Unit]
+Description=DSTAIR Flask Application (Gunicorn)
+After=network.target
+
+[Service]
+User=dstair
+Group=www-data
+WorkingDirectory=/home/dstair/app
+
+# Load environment variables from .env file
+EnvironmentFile=/home/dstair/app/.env
+
+# Start Gunicorn using the wsgi.py entry point
+ExecStart=/home/dstair/app/venv/bin/gunicorn \
+    wsgi:app \
+    --workers 2 \
+    --threads 2 \
+    --bind 127.0.0.1:8000 \
+    --timeout 120 \
+    --access-logfile /var/log/dstair/access.log \
+    --error-logfile  /var/log/dstair/error.log \
+    --log-level warning
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+
+# Resource limits
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
