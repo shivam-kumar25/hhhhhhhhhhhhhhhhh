@@ -712,15 +712,25 @@
             <div class="analysis-title">{{ analysis.title }}</div>
         </div>
 
-        <nav class="nav-tabs" role="tablist">
-            <button class="nav-tab active" data-tab="questionnaire" onclick="switchTab('questionnaire', this)"
-                role="tab">Questions</button>
-            <button class="nav-tab" data-tab="results" onclick="switchTab('results', this)" role="tab">Results</button>
-            <button class="nav-tab" data-tab="tools" onclick="switchTab('tools', this)" role="tab">Tools</button>
-            <button class="nav-tab" data-tab="ai_analysis" onclick="switchTab('ai_analysis', this)" role="tab">AI
-                Analysis</button>
-        </nav>
-
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+            <nav class="nav-tabs" role="tablist">
+                <button class="nav-tab active" data-tab="questionnaire" onclick="switchTab('questionnaire', this)"
+                    role="tab">Questions</button>
+                <button class="nav-tab" data-tab="results" onclick="switchTab('results', this)" role="tab">Results</button>
+                <button class="nav-tab" data-tab="tools" onclick="switchTab('tools', this)" role="tab">Tools</button>
+                <button class="nav-tab" data-tab="ai_analysis" onclick="switchTab('ai_analysis', this)" role="tab">AI Analysis</button>
+            </nav>
+            <a href="{{ url_for('analysis.pdf_report', username=current_user.user_account_unique_username_string, analysis_id=analysis.id) }}"
+               target="_blank"
+               style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:.5rem;background:#064E3B;color:#fff;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;text-decoration:none;transition:background .18s;white-space:nowrap;flex-shrink:0;"
+               onmouseover="this.style.background='#022C22'" onmouseout="this.style.background='#064E3B'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                Generate PDF
+            </a>
+        </div>
 
     </div>
 
@@ -841,6 +851,7 @@
                                     updateTriggeredTools(data.triggered_tools || []);
                                     delete tabCache['results'];
                                     delete tabCache['tools'];
+                                    delete tabCache['questionnaire'];
                                 } else {
                                     showToast(data.error || 'Failed to save answer.', 'error');
                                 }

@@ -829,15 +829,20 @@
                   <!-- Actions -->
                   <div class="arc-card-actions">
                      <button type="button"
-                        @click='openEditModal({{ analysis.id }}, {{ analysis.title | tojson }}, {{ analysis.country | tojson }}, {{ (analysis.notes or "") | tojson }})'
-                        class="btn-icon" title="Edit">
+                        class="btn-icon js-edit-btn" title="Edit"
+                        data-id="{{ analysis.id }}"
+                        data-title="{{ analysis.title | e }}"
+                        data-country="{{ analysis.country | e }}"
+                        data-notes="{{ (analysis.notes or '') | e }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                         </svg>
                      </button>
-                     <button type="button" @click='openDeleteModal({{ analysis.id }}, {{ analysis.title | tojson }})'
-                        class="btn-icon btn-icon-danger" title="Delete">
+                     <button type="button"
+                        class="btn-icon btn-icon-danger js-delete-btn" title="Delete"
+                        data-id="{{ analysis.id }}"
+                        data-title="{{ analysis.title | e }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                            <path d="M3 6h18" />
@@ -950,35 +955,35 @@
       }
    }
 
-   document.addEventListener('alpine:init', () => {
-      window.openEditModal = function (id, title, country, notes) {
-         document.getElementById('editAnalysisId').value = id;
-         document.getElementById('editAnalysisTitle').value = title;
-         document.getElementById('editAnalysisNotes').value = notes || '';
-
-         const countrySelect = document.getElementById('editAnalysisCountry');
+   function openEditModal(id, title, country, notes) {
+      document.getElementById('editAnalysisId').value = id;
+      document.getElementById('editAnalysisTitle').value = title;
+      document.getElementById('editAnalysisNotes').value = notes || '';
+      const countrySelect = document.getElementById('editAnalysisCountry');
+      if (countrySelect) {
          countrySelect.value = country;
          dstairModalFlagPreview(countrySelect, 'editFlagPreview');
+      }
+      const overlay = document.getElementById('editModalOverlay');
+      const content = document.getElementById('editModalContent');
+      if (overlay && content) {
+         overlay.classList.add('active');
+         content.classList.add('active');
+         document.body.style.overflow = 'hidden';
+      }
+   }
 
-         const overlay = document.getElementById('editModalOverlay');
-         const content = document.getElementById('editModalContent');
-         if (overlay && content) {
-            overlay.classList.add('active');
-            content.classList.add('active');
-         }
-      };
-
-      window.openDeleteModal = function (id, title) {
-         document.getElementById('deleteAnalysisId').value = id;
-         document.getElementById('deleteAnalysisTitle').innerText = `"${title}"`;
-         const overlay = document.getElementById('deleteModalOverlay');
-         const content = document.getElementById('deleteModalContent');
-         if (overlay && content) {
-            overlay.classList.add('active');
-            content.classList.add('active');
-         }
-      };
-   });
+   function openDeleteModal(id, title) {
+      document.getElementById('deleteAnalysisId').value = id;
+      document.getElementById('deleteAnalysisTitle').innerText = `"${title}"`;
+      const overlay = document.getElementById('deleteModalOverlay');
+      const content = document.getElementById('deleteModalContent');
+      if (overlay && content) {
+         overlay.classList.add('active');
+         content.classList.add('active');
+         document.body.style.overflow = 'hidden';
+      }
+   }
 
    function closeEditModal() {
       const overlay = document.getElementById('editModalOverlay');
@@ -986,6 +991,7 @@
       if (overlay && content) {
          overlay.classList.remove('active');
          content.classList.remove('active');
+         document.body.style.overflow = '';
       }
    }
 
@@ -995,6 +1001,7 @@
       if (overlay && content) {
          overlay.classList.remove('active');
          content.classList.remove('active');
+         document.body.style.overflow = '';
       }
    }
 
@@ -1079,19 +1086,19 @@
       btn.innerText = 'Deleting...';
 
       try {
-         const res = await fetch(`/analysis/${id}/delete`, { 
-             method: 'POST', 
-             headers: { 'X-CSRFToken': getCSRFToken() } 
+         const res = await fetch(`/analysis/${id}/delete`, {
+             method: 'POST',
+             headers: { 'X-CSRFToken': getCSRFToken() }
          });
          const data = await res.json();
          if (data.success) {
-             location.reload(); 
+             window.location.href = data.redirect || window.location.pathname;
          } else {
-             throw new Error(data.error);
+             throw new Error(data.error || 'Delete failed.');
          }
       } catch (err) {
-         showToast(err.message, 'error'); 
-         btn.disabled = false; 
+         showToast(err.message, 'error');
+         btn.disabled = false;
          btn.innerText = originalText;
       }
    }
@@ -1103,13 +1110,31 @@
          createForm.dataset.ajax = 'true';
          createForm.addEventListener('submit', submitAnalysis);
       }
-      
+
       // Edit Form Setup
       const editForm = document.getElementById('editAnalysisForm');
       if (editForm) {
-         editForm.dataset.ajax = 'true'; 
+         editForm.dataset.ajax = 'true';
          editForm.addEventListener('submit', submitEditAnalysis);
       }
+
+      // Edit / Delete button delegation — reads from data-* attributes (no escaping issues)
+      document.addEventListener('click', function(e) {
+         const editBtn = e.target.closest('.js-edit-btn');
+         if (editBtn) {
+            openEditModal(
+               editBtn.dataset.id,
+               editBtn.dataset.title,
+               editBtn.dataset.country,
+               editBtn.dataset.notes
+            );
+            return;
+         }
+         const deleteBtn = e.target.closest('.js-delete-btn');
+         if (deleteBtn) {
+            openDeleteModal(deleteBtn.dataset.id, deleteBtn.dataset.title);
+         }
+      });
    });
 
    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeEditModal(); closeDeleteModal(); } });

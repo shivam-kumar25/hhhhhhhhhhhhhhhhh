@@ -215,7 +215,8 @@
     transition: background 0.15s;
 }
 .rs-sphere-breakdown-data-row:last-child { border-bottom: none; }
-.rs-sphere-breakdown-data-row:hover { background: #FAFAFA; }
+.rs-sphere-breakdown-data-row:nth-child(odd)  { background: rgba(110, 103, 103, 0.33); }
+.rs-sphere-breakdown-data-row:nth-child(even) { background: rgba(167, 128, 128, 0.53); }
 
 .rs-sphere-breakdown-sphere-name {
     width: 160px;
@@ -275,7 +276,7 @@
 .rs-results-right-chart-panel {
     width: 660px;
     flex-shrink: 0;
-    background: #465457;
+    background: #435153;
     border-left: none;
     position: sticky;
     top: 137px;
@@ -410,39 +411,290 @@
 }
 canvas#rsRadarChart { width: 100% !important; height: auto !important; }
 
-/* Legend */
-.rs-panel-legend-section {
-    padding: 0 1.25rem 1.25rem;
-    flex: 1;
-}
-.rs-panel-legend-list {
+/* ── Compare Panel (outside the dark sidebar, on light background) ── */
+.rs-compare-panel {
+    padding: 1.5rem 2.5rem 2rem;
+    background: #F3F4F6;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.75rem;
 }
-.rs-chart-panel-legend-item {
+.rs-compare-body {
+    display: grid;
+    grid-template-columns: minmax(260px, 380px) 1fr;
+    gap: 2rem;
+    align-items: flex-start;
+}
+/* ── Scores table (right side) ── */
+.rs-scores-table-wrap {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+.rs-scores-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+}
+.rs-scores-table thead tr {
+    background: #ffffff;
+    border-bottom: 4px solid #ffcc00;
+}
+.rs-scores-table th {
+    padding: 0.55rem 0.85rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #000000;
+    text-align: left;
+    white-space: nowrap;
+}
+.rs-scores-table th.rs-st-series-col {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rs-scores-table td {
+    padding: 0.5rem 0.85rem;
+    color: #374151;
+    border-bottom: 1px solid #F3F4F6;
+    vertical-align: middle;
+}
+.rs-scores-table tbody tr:last-child td { border-bottom: none; }
+.rs-scores-table tbody tr:nth-child(odd) td  { background: #ffffff; }
+.rs-scores-table tbody tr:nth-child(even) td { background: #e4e473; }
+.rs-st-sphere-name {
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.75rem;
+}
+.rs-st-score-cell {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+.rs-st-series-header {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(255,255,255,0.04);
-    border: 3.2px solid rgba(255,255,255,0.7);
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.9);
+    gap: 0.4rem;
 }
-.rs-chart-panel-legend-color-swatch {
-    width: 10px; height: 10px;
+.rs-st-series-dot {
+    width: 8px; height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
 }
-.rs-panel-no-comparison-note {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.25);
+.rs-scores-empty {
+    padding: 1.5rem;
     text-align: center;
-    padding: 1rem 0;
-    line-height: 1.7;
+    font-size: 0.78rem;
+    color: #9CA3AF;
+}
+.rs-compare-heading {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #9CA3AF;
+    margin-bottom: 0.25rem;
+}
+.rs-compare-groups-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+.rs-compare-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 180px;
+}
+.rs-compare-group-title {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6B7280;
+    margin-bottom: 0.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.rs-compare-note {
+    font-size: 0.58rem;
+    color: #9CA3AF;
+    font-style: italic;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.rs-compare-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.65rem;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.45rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+}
+.rs-compare-item:hover {
+    border-color: #D1D5DB;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.rs-compare-item--active {
+    border-color: #F97316;
+    background: #FFF7ED;
+}
+.rs-compare-item--other-active {
+    border-color: #60A5FA;
+    background: #EFF6FF;
+}
+.rs-compare-item--disabled {
+    opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+}
+/* Custom checkbox */
+.rs-cb-box {
+    width: 13px; height: 13px;
+    border-radius: 3px;
+    border: 1.5px solid #D1D5DB;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.rs-compare-item--active .rs-cb-box,
+.rs-compare-item--disabled .rs-cb-box {
+    background: #F97316; border-color: #F97316;
+}
+.rs-cb-box::after {
+    content: '';
+    display: none;
+    width: 7px; height: 4.5px;
+    border-left: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    transform: rotate(-45deg) translate(1px,-1px);
+}
+.rs-compare-item--active .rs-cb-box::after,
+.rs-compare-item--disabled .rs-cb-box::after { display: block; }
+/* Custom radio */
+.rs-cb-radio {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    border: 1.5px solid #D1D5DB;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.rs-compare-item--other-active .rs-cb-radio { border-color: #60A5FA; }
+.rs-cb-radio::after {
+    content: '';
+    display: none;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #60A5FA;
+}
+.rs-compare-item--other-active .rs-cb-radio::after { display: block; }
+/* Swatch dot */
+.rs-compare-swatch {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    background: #E5E7EB;
+}
+.rs-compare-label {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rs-compare-item--active .rs-compare-label { color: #C2410C; }
+.rs-compare-item--other-active .rs-compare-label { color: #1D4ED8; }
+.rs-compare-country-tag {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9CA3AF;
+    flex-shrink: 0;
+}
+.rs-compare-limit-msg {
+    font-size: 0.68rem;
+    color: #F97316;
+    padding: 0.1rem 0;
+    display: none;
+}
+.rs-compare-limit-msg--show { display: inline; }
+
+/* ── Add AI button + dropdown ── */
+.rs-add-ai-wrap {
+    position: relative;
+    display: inline-block;
+    margin-top: 0.3rem;
+}
+.rs-add-ai-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    background: #fff;
+    border: 1px dashed #D1D5DB;
+    border-radius: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+}
+.rs-add-ai-btn:hover {
+    border-color: #F97316;
+    color: #F97316;
+    background: #FFF7ED;
+}
+.rs-add-ai-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 100;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.6rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    min-width: 220px;
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+}
+.rs-add-ai-dropdown--open { display: block; }
+.rs-add-ai-dropdown-item {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+    color: #374151;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.1s;
+}
+.rs-add-ai-dropdown-item:hover { background: #F9FAFB; color: #111827; }
+.rs-add-ai-dropdown-empty {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.75rem;
+    color: #9CA3AF;
+    text-align: center;
 }
 
 /* ==========================================================================
@@ -631,34 +883,131 @@ canvas#rsRadarChart { width: 100% !important; height: auto !important; }
             </div>
         </div>
 
-        <!-- Legend -->
-        <div class="rs-panel-legend-section">
-            <div class="rs-panel-section-eyebrow">Series</div>
-            <div class="rs-panel-legend-list" id="rs-chart-panel-legend-list"></div>
-            {% if radar_analyses | length <= 1 %}
-            <div class="rs-panel-no-comparison-note">
-                No comparison data available for <strong style="color:rgba(255,255,255,0.5)">{{ analysis.country }}</strong> yet. Complete more analyses or enable AI baseline.
-            </div>
-            {% endif %}
-        </div>
-
     </aside>
 
+</div>
+
+<!-- ── Compare panel (outside the two-column box, below the chart) ── -->
+<div class="rs-compare-panel">
+    <div class="rs-compare-heading">Compare Analyses &nbsp;·&nbsp; max 5 total
+        <span id="rs-compare-limit-msg" class="rs-compare-limit-msg">— Max 5 analyses reached</span>
+    </div>
+
+    <div class="rs-compare-body">
+
+        <!-- LEFT: picker -->
+        <div class="rs-compare-groups-row">
+
+            <!-- Current (always on) -->
+            <div class="rs-compare-group">
+                <div class="rs-compare-group-title">Current Analysis</div>
+                <div class="rs-compare-item rs-compare-item--active rs-compare-item--disabled">
+                    <div class="rs-cb-box"></div>
+                    <span class="rs-compare-swatch" data-swatch="current"></span>
+                    <span class="rs-compare-label">{{ analysis.title }}</span>
+                    <span class="rs-compare-country-tag">{{ analysis.country }}</span>
+                </div>
+            </div>
+
+            {% set mine_pool = comparison_pool | selectattr('type', 'equalto', 'mine') | list %}
+            {% if mine_pool %}
+            <div class="rs-compare-group">
+                <div class="rs-compare-group-title">My Other Analyses</div>
+                {% for s in mine_pool %}
+                <div class="rs-compare-item rs-compare-cb-wrap"
+                     data-id="{{ s.id }}" data-type="mine"
+                     onclick="rsToggleSeries(this)">
+                    <div class="rs-cb-box"></div>
+                    <span class="rs-compare-swatch" data-swatch="{{ s.id }}"></span>
+                    <span class="rs-compare-label">{{ s.title }}</span>
+                    <span class="rs-compare-country-tag">{{ s.country }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="rs-compare-group" id="rs-ai-group">
+                <div class="rs-compare-group-title">AI Baseline</div>
+                {% set ai_pool = comparison_pool | selectattr('type', 'equalto', 'ai') | list %}
+                {% for s in ai_pool %}
+                <div class="rs-compare-item rs-compare-cb-wrap"
+                     data-id="{{ s.id }}" data-type="ai"
+                     onclick="rsToggleSeries(this)">
+                    <div class="rs-cb-box"></div>
+                    <span class="rs-compare-swatch" data-swatch="{{ s.id }}"></span>
+                    <span class="rs-compare-label">{{ s.country }}</span>
+                </div>
+                {% endfor %}
+                <!-- Dynamic AI items injected here by JS -->
+                <div id="rs-ai-dynamic-items"></div>
+                <!-- + Add AI button -->
+                <div class="rs-add-ai-wrap">
+                    <div class="rs-add-ai-btn" id="rs-add-ai-btn" onclick="rsToggleAiDropdown(event)">
+                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><line x1="5.5" y1="1" x2="5.5" y2="10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="5.5" x2="10" y2="5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        Add country AI
+                    </div>
+                    <div class="rs-add-ai-dropdown" id="rs-add-ai-dropdown">
+                        <!-- populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            {% set others_pool = comparison_pool | selectattr('type', 'equalto', 'other') | list %}
+            {% if others_pool %}
+            <div class="rs-compare-group">
+                <div class="rs-compare-group-title">Other Analysts <span class="rs-compare-note">· one at a time</span></div>
+                {% for s in others_pool %}
+                <div class="rs-compare-item rs-compare-cb-wrap"
+                     data-id="{{ s.id }}" data-type="other"
+                     onclick="rsToggleSeries(this)">
+                    <div class="rs-cb-radio"></div>
+                    <span class="rs-compare-swatch" data-swatch="{{ s.id }}"></span>
+                    <span class="rs-compare-label">{{ s.title }}</span>
+                    <span class="rs-compare-country-tag">{{ s.country }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if not comparison_pool %}
+            <div style="font-size:0.8rem;color:#9CA3AF;padding:0.5rem 0;">
+                No other analyses available to compare yet.
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- RIGHT: scores comparison table -->
+        <div class="rs-scores-table-wrap">
+            <div id="rs-scores-table-inner">
+                <div class="rs-scores-empty">Select analyses on the left to compare sphere scores.</div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <!-- Chart.js -->
 <script>
 (function () {
-    function rsInitChart() {
-    const RS_SERIES_COLORS = ['#F97316','#34D399','#60A5FA','#A78BFA','#FB7185','#FBBF24'];
+    /* ── Constants ────────────────────────────────────────────────── */
+    const RS_COLORS = ['#FF6B00','#00C48C','#2563EB','#9333EA','#E11D48','#D97706'];
+    const RS_MAX    = 6; // max visible series including current
 
-    const rsRadarAnalyses = {{ radar_series | tojson }};
-    const rsSpheres       = {{ sphere_labels | tojson }};
+    /* ── Data from server ─────────────────────────────────────────── */
+    const RS_CURRENT_SERIES  = {{ current_series | tojson }};
+    let   RS_COMPARISON_POOL = {{ comparison_pool | tojson }};
+    let   RS_AI_ADDABLE      = {{ ai_addable | tojson }};   // AI analyses available to add
+    const RS_SPHERES         = {{ sphere_labels | tojson }};
 
-    const rsImportanceMap = {
+    const RS_IMPORTANCE = {
         {% for sphere in spheres %}{% for q in sphere.questions %}"{{ q.id }}": {{ q.importance or 1 }},{% endfor %}{% endfor %}
     };
 
+    /* ── Active series state (Set of IDs) ─────────────────────────── */
+    const rsActive = new Set(['current']);
+
+    /* ── Helpers ──────────────────────────────────────────────────── */
     function rsScoreColor(s)    { return s >= 0.7 ? '#16A34A' : s >= 0.4 ? '#D97706' : '#DC2626'; }
     function rsScoreGradient(s) {
         return s >= 0.7 ? 'linear-gradient(90deg,#064E3B,#16A34A)'
@@ -667,135 +1016,349 @@ canvas#rsRadarChart { width: 100% !important; height: auto !important; }
     }
 
     function rsComputeSphereScores(answersDict) {
-        return rsSpheres.map(sphere => {
+        return RS_SPHERES.map(sphere => {
             const sa = (answersDict || {})[sphere.name] || {};
             let num = 0, den = 0;
             for (const [qid, val] of Object.entries(sa)) {
                 if (val === '-1' || val === null || val === undefined) continue;
                 const r = Number(val); if (isNaN(r)) continue;
-                const a = rsImportanceMap[String(qid)] || 1;
+                const a = RS_IMPORTANCE[String(qid)] || 1;
                 num += a * r; den += a * 7;
             }
             return den > 0 ? parseFloat((num / den).toFixed(2)) : 0;
         });
     }
 
-    // ── Current analysis scores ────────────────────────────────────
-    const rsCurrentAnswers = rsRadarAnalyses[0]
-        ? (rsRadarAnalyses[0].answers_dict || rsRadarAnalyses[0].answers || {}) : {};
-
-    const rsSphereIj = [];
-    let rsTotalAnswered = 0;
-
-    rsSpheres.forEach((sphere, idx) => {
-        const sa = (rsCurrentAnswers[sphere.name] || {});
-        let num = 0, den = 0, answered = 0;
-        for (const [qid, val] of Object.entries(sa)) {
-            if (val === '-1' || val === null || val === undefined) continue;
-            const r = Number(val); if (isNaN(r)) continue;
-            const a = rsImportanceMap[String(qid)] || 1;
-            num += a * r; den += a * 7; answered++;
-        }
-        rsTotalAnswered += answered;
-
-        const scoreEl   = document.getElementById('rs-sphere-score-number-' + (idx + 1));
-        const scoreLbl  = document.getElementById('rs-sphere-score-label-'  + (idx + 1));
-        const barFillEl = document.getElementById('rs-sphere-bar-fill-'     + (idx + 1));
-
-        if (den > 0) {
-            const score = num / den;
-            rsSphereIj.push(score);
-            const col = rsScoreColor(score);
-            if (scoreEl)   { scoreEl.textContent = score.toFixed(2); scoreEl.style.color = col; }
-            if (scoreLbl)  { scoreLbl.style.color = col; }
-            if (barFillEl) { barFillEl.style.width = (score * 100).toFixed(1) + '%'; barFillEl.style.background = rsScoreGradient(score); }
-        } else {
-            if (scoreEl)   scoreEl.textContent = '—';
-            if (barFillEl) barFillEl.style.width = '0%';
-        }
-    });
-
-    // Aggregate
-    const rsAggregate = rsSphereIj.length > 0
-        ? (rsSphereIj.reduce((a, b) => a + b, 0) / rsSphereIj.length).toFixed(2) : null;
-
-    const rsAggEl  = document.getElementById('rs-aggregate-index-value-display');
-    const rsAnsEl  = document.getElementById('rs-total-answered-count-display');
-    const rsPanAgg = document.getElementById('rs-panel-aggregate-mirror');
-    const rsPanAns = document.getElementById('rs-panel-answered-mirror');
-
-    if (rsAggEl)  rsAggEl.textContent  = rsAggregate || '—';
-    if (rsAnsEl)  rsAnsEl.textContent  = rsTotalAnswered || '—';
-    if (rsPanAgg) rsPanAgg.textContent = rsAggregate || '—';
-    if (rsPanAns) rsPanAns.textContent = rsTotalAnswered || '—';
-
-    // Update hero banner color band based on aggregate score
-    if (rsAggregate) {
-        const band = document.querySelector('.rs-aggregate-hero-color-band');
-        if (band) band.style.background = rsScoreGradient(parseFloat(rsAggregate));
+    function rsSeriesById(id) {
+        if (id === 'current') return RS_CURRENT_SERIES;
+        return RS_COMPARISON_POOL.find(s => s.id === id) || null;
     }
 
-    // ── Radar chart ───────────────────────────────────────────────
-    const rsLabels   = rsSpheres.map(s => s.label);
-    const rsDatasets = rsRadarAnalyses.map((a, i) => {
-        const answers = a.answers_dict || a.answers || {};
-        const scores  = rsComputeSphereScores(answers);
-        const color   = RS_SERIES_COLORS[i % RS_SERIES_COLORS.length];
-        const label   = a.is_ai ? 'AI Baseline' : (a.is_current ? 'Current Analysis' : (a.title || 'Other'));
-        return {
-            label, data: scores,
-            borderColor: color,
-            backgroundColor: color + '18',
-            pointBackgroundColor: color,
-            pointBorderColor: 'transparent',
-            borderWidth: a.is_current ? 2.5 : 1.5,
-            pointRadius: a.is_current ? 4 : 3,
-        };
-    });
+    /* ── Populate sphere breakdown (current analysis only) ────────── */
+    function rsPopulateSphereBreakdown() {
+        const answers = RS_CURRENT_SERIES.answers_dict || {};
+        const rsSphereIj = [];
+        let rsTotalAnswered = 0;
 
-    // Legend
-    const rsLegendEl = document.getElementById('rs-chart-panel-legend-list');
-    if (rsLegendEl) {
-        rsDatasets.forEach((ds, i) => {
-            const item = document.createElement('div');
-            item.className = 'rs-chart-panel-legend-item';
-            item.innerHTML = `<div class="rs-chart-panel-legend-color-swatch" style="background:${RS_SERIES_COLORS[i % RS_SERIES_COLORS.length]}"></div><span>${ds.label}</span>`;
-            rsLegendEl.appendChild(item);
-        });
-    }
+        RS_SPHERES.forEach((sphere, idx) => {
+            const sa = (answers[sphere.name] || {});
+            let num = 0, den = 0, answered = 0;
+            for (const [qid, val] of Object.entries(sa)) {
+                if (val === '-1' || val === null || val === undefined) continue;
+                const r = Number(val); if (isNaN(r)) continue;
+                const a = RS_IMPORTANCE[String(qid)] || 1;
+                num += a * r; den += a * 7; answered++;
+            }
+            rsTotalAnswered += answered;
 
-    // Render chart
-    const rsCanvas = document.getElementById('rsRadarChart');
-    if (rsCanvas && rsDatasets.length) {
-        new Chart(rsCanvas, {
-            type: 'radar',
-            data: { labels: rsLabels, datasets: rsDatasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    r: {
-                        min: 0, max: 1,
-                        ticks: { stepSize: 0.2, font: { size: 1 }, color: 'rgba(255,255,255,0.3)', backdropColor: 'transparent' },
-                        pointLabels: { font: { size: 9, weight: '700' }, color: 'rgba(255, 255, 0, 0.97)' },
-                        grid: { color: 'rgba(255,255,255,0.8)' },
-                        angleLines: { color: 'rgba(255,255,255,0.8)' }
-                    }
-                },
-                plugins: { legend: { display: false } }
+            const scoreEl   = document.getElementById('rs-sphere-score-number-' + (idx + 1));
+            const scoreLbl  = document.getElementById('rs-sphere-score-label-'  + (idx + 1));
+            const barFillEl = document.getElementById('rs-sphere-bar-fill-'     + (idx + 1));
+
+            if (den > 0) {
+                const score = num / den;
+                rsSphereIj.push(score);
+                const col = rsScoreColor(score);
+                if (scoreEl)   { scoreEl.textContent = score.toFixed(2); scoreEl.style.color = col; }
+                if (scoreLbl)  { scoreLbl.style.color = col; }
+                if (barFillEl) { barFillEl.style.width = (score * 100).toFixed(1) + '%'; barFillEl.style.background = rsScoreGradient(score); }
+            } else {
+                if (scoreEl)   scoreEl.textContent = '—';
+                if (barFillEl) barFillEl.style.width = '0%';
             }
         });
-    }
-    } // end rsInitChart
 
-    // Guard: run after Chart.js is available
+        const aggregate = rsSphereIj.length > 0
+            ? (rsSphereIj.reduce((a, b) => a + b, 0) / rsSphereIj.length).toFixed(2) : null;
+
+        const aggEl = document.getElementById('rs-aggregate-index-value-display');
+        if (aggEl) aggEl.textContent = aggregate || '—';
+
+        if (aggregate) {
+            const band = document.querySelector('.rs-aggregate-hero-color-band');
+            if (band) band.style.background = rsScoreGradient(parseFloat(aggregate));
+        }
+    }
+
+    /* ── Color assignment — dynamic slots, no wrap collisions ───────── */
+    const RS_COLOR_MAP  = new Map();
+    const RS_COLOR_USED = new Array(RS_COLORS.length).fill(false);
+    // current always owns slot 0
+    RS_COLOR_MAP.set('current', 0);
+    RS_COLOR_USED[0] = true;
+
+    function rsAssignColor(id) {
+        if (RS_COLOR_MAP.has(id)) return;
+        const slot = RS_COLOR_USED.indexOf(false);
+        if (slot === -1) return;
+        RS_COLOR_MAP.set(id, slot);
+        RS_COLOR_USED[slot] = true;
+    }
+    function rsReleaseColor(id) {
+        if (id === 'current') return;
+        const slot = RS_COLOR_MAP.get(id);
+        if (slot !== undefined) { RS_COLOR_USED[slot] = false; RS_COLOR_MAP.delete(id); }
+    }
+    function rsGetColorForId(id) {
+        const slot = RS_COLOR_MAP.get(id);
+        return slot !== undefined ? RS_COLORS[slot] : RS_COLORS[0];
+    }
+
+    /* ── Chart instance ───────────────────────────────────────────── */
+    let rsChartInstance = null;
+
+    function rsRebuildChart() {
+        const labels = RS_SPHERES.map(s => s.label);
+        const datasets = [];
+
+        rsActive.forEach(id => {
+            const s = rsSeriesById(id);
+            if (!s) return;
+            const scores = rsComputeSphereScores(s.answers_dict);
+            const color  = rsGetColorForId(id);
+            const isCurrent = (id === 'current');
+            datasets.push({
+                label: s.title,
+                data: scores,
+                borderColor: color,
+                backgroundColor: color + '66',
+                pointBackgroundColor: color,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 1,
+                borderWidth: isCurrent ? 1.5 : 1,
+                pointRadius: isCurrent ? 3 : 2.5,
+            });
+        });
+
+        // Update swatch colors
+        rsActive.forEach(id => {
+            const swatch = document.querySelector(`[data-swatch="${id}"]`);
+            if (swatch) swatch.style.background = rsGetColorForId(id);
+        });
+        // Grey out inactive swatches
+        RS_COMPARISON_POOL.forEach(s => {
+            if (!rsActive.has(s.id)) {
+                const swatch = document.querySelector(`[data-swatch="${s.id}"]`);
+                if (swatch) swatch.style.background = 'rgba(255,255,255,0.12)';
+            }
+        });
+
+        const canvas = document.getElementById('rsRadarChart');
+        if (!canvas) return;
+
+        if (rsChartInstance) {
+            rsChartInstance.data.datasets = datasets;
+            rsChartInstance.update('none');
+        } else {
+            rsChartInstance = new Chart(canvas, {
+                type: 'radar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: { duration: 300 },
+                    scales: {
+                        r: {
+                            min: 0, max: 1,
+                            ticks: { stepSize: 0.2, font: { size: 1 }, color: 'rgba(43,38,38,0.9)', backdropColor: 'transparent' },
+                            pointLabels: { font: { size: 10.88, weight: '700' }, color: '#ffffff' },
+                            grid: { color: 'rgba(255,255,255,0.8)' },
+                            angleLines: { color: 'rgba(255,255,255,0.8)' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    }
+
+    /* ── AI dropdown ─────────────────────────────────────────────── */
+    function rsRenderAiDropdown() {
+        const dd = document.getElementById('rs-add-ai-dropdown');
+        if (!dd) return;
+        const available = RS_AI_ADDABLE.filter(s => !RS_COMPARISON_POOL.find(p => p.id === s.id));
+        if (available.length === 0) {
+            dd.innerHTML = '<div class="rs-add-ai-dropdown-empty">No more AI analyses available</div>';
+            return;
+        }
+        dd.innerHTML = available.map(s =>
+            `<div class="rs-add-ai-dropdown-item" onclick="rsAddAiAnalysis('${s.id}')">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="#F59E0B" stroke-width="1.5"/></svg>
+                ${s.country}
+            </div>`
+        ).join('');
+    }
+
+    window.rsToggleAiDropdown = function(e) {
+        e.stopPropagation();
+        const dd = document.getElementById('rs-add-ai-dropdown');
+        if (!dd) return;
+        const isOpen = dd.classList.contains('rs-add-ai-dropdown--open');
+        dd.classList.toggle('rs-add-ai-dropdown--open', !isOpen);
+        if (!isOpen) rsRenderAiDropdown();
+    };
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        const dd = document.getElementById('rs-add-ai-dropdown');
+        if (dd) dd.classList.remove('rs-add-ai-dropdown--open');
+    });
+
+    window.rsAddAiAnalysis = function(id) {
+        const s = RS_AI_ADDABLE.find(a => a.id === id);
+        if (!s) return;
+
+        // Move from addable → pool
+        RS_COMPARISON_POOL.push(s);
+        RS_AI_ADDABLE = RS_AI_ADDABLE.filter(a => a.id !== id);
+
+        // Inject checkbox item into the DOM
+        const container = document.getElementById('rs-ai-dynamic-items');
+        if (container) {
+            const el = document.createElement('div');
+            el.className = 'rs-compare-item rs-compare-cb-wrap';
+            el.dataset.id   = s.id;
+            el.dataset.type = 'ai';
+            el.setAttribute('onclick', 'rsToggleSeries(this)');
+            el.innerHTML = `<div class="rs-cb-box"></div>
+                <span class="rs-compare-swatch" data-swatch="${s.id}"></span>
+                <span class="rs-compare-label">${s.country}</span>`;
+            container.appendChild(el);
+        }
+
+        // Close dropdown and re-render it
+        const dd = document.getElementById('rs-add-ai-dropdown');
+        if (dd) dd.classList.remove('rs-add-ai-dropdown--open');
+        rsRenderAiDropdown();
+    };
+
+    /* ── Scores comparison table ──────────────────────────────────── */
+    function rsUpdateScoresTable() {
+        const container = document.getElementById('rs-scores-table-inner');
+        if (!container) return;
+
+        const activeIds = [...rsActive];
+        if (activeIds.length === 0) {
+            container.innerHTML = '<div class="rs-scores-empty">Select analyses on the left to compare sphere scores.</div>';
+            return;
+        }
+
+        const sphereNames = RS_SPHERES.map(s => s.label);
+
+        // Build header
+        let thead = '<thead><tr><th>Sphere</th>';
+        activeIds.forEach(id => {
+            const s = rsSeriesById(id);
+            if (!s) return;
+            const color = rsGetColorForId(id);
+            const label = id === 'current' ? s.title : s.title;
+            thead += `<th class="rs-st-series-col">
+                <div class="rs-st-series-header">
+                    <span class="rs-st-series-dot" style="background:${color}"></span>
+                    <span style="overflow:hidden;text-overflow:ellipsis;max-width:110px;">${label}</span>
+                </div>
+            </th>`;
+        });
+        thead += '</tr></thead>';
+
+        // Build rows per sphere
+        let tbody = '<tbody>';
+        RS_SPHERES.forEach(sphere => {
+            tbody += `<tr><td class="rs-st-sphere-name">${sphere.label}</td>`;
+            activeIds.forEach(id => {
+                const s = rsSeriesById(id);
+                const answers = s ? (s.answers_dict || {}) : {};
+                const sa = (answers[sphere.name] || {});
+                let num = 0, den = 0;
+                for (const [qid, val] of Object.entries(sa)) {
+                    if (val === '-1' || val === null || val === undefined) continue;
+                    const r = Number(val); if (isNaN(r)) continue;
+                    const a = RS_IMPORTANCE[String(qid)] || 1;
+                    num += a * r; den += a * 7;
+                }
+                const score = den > 0 ? (num / den) : null;
+                const color = score !== null ? rsScoreColor(score) : '#D1D5DB';
+                const display = score !== null ? score.toFixed(2) : '—';
+                tbody += `<td class="rs-st-score-cell" style="color:${color}">${display}</td>`;
+            });
+            tbody += '</tr>';
+        });
+
+        // Aggregate row
+        tbody += `<tr style="border-top:2px solid #E5E7EB;background:#F9FAFB"><td class="rs-st-sphere-name" style="color:#6B7280;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;">Aggregate</td>`;
+        activeIds.forEach(id => {
+            const s = rsSeriesById(id);
+            const scores = s ? rsComputeSphereScores(s.answers_dict) : [];
+            const answered = scores.filter(v => v > 0);
+            const agg = answered.length > 0 ? (answered.reduce((a,b)=>a+b,0)/answered.length) : null;
+            const color = agg !== null ? rsScoreColor(agg) : '#D1D5DB';
+            const display = agg !== null ? agg.toFixed(2) : '—';
+            tbody += `<td class="rs-st-score-cell" style="color:${color};font-size:0.95rem;">${display}</td>`;
+        });
+        tbody += '</tr></tbody>';
+
+        container.innerHTML = `<table class="rs-scores-table">${thead}${tbody}</table>`;
+    }
+
+    /* ── Toggle handler (called from onclick) ─────────────────────── */
+    window.rsToggleSeries = function(el) {
+        const id   = el.dataset.id;
+        const type = el.dataset.type;
+        const limitMsg = document.getElementById('rs-compare-limit-msg');
+
+        if (type === 'other') {
+            const wasActive = rsActive.has(id);
+            RS_COMPARISON_POOL.forEach(s => {
+                if (s.type === 'other') {
+                    rsActive.delete(s.id);
+                    rsReleaseColor(s.id);
+                    const item = document.querySelector(`[data-id="${s.id}"]`);
+                    if (item) item.classList.remove('rs-compare-item--other-active');
+                }
+            });
+            if (!wasActive) {
+                if (rsActive.size >= RS_MAX) {
+                    if (limitMsg) { limitMsg.classList.add('rs-compare-limit-msg--show'); setTimeout(() => limitMsg.classList.remove('rs-compare-limit-msg--show'), 2500); }
+                    return;
+                }
+                rsAssignColor(id);
+                rsActive.add(id);
+                el.classList.add('rs-compare-item--other-active');
+            }
+        } else {
+            if (rsActive.has(id)) {
+                rsActive.delete(id);
+                rsReleaseColor(id);
+                el.classList.remove('rs-compare-item--active');
+            } else {
+                if (rsActive.size >= RS_MAX) {
+                    if (limitMsg) { limitMsg.classList.add('rs-compare-limit-msg--show'); setTimeout(() => limitMsg.classList.remove('rs-compare-limit-msg--show'), 2500); }
+                    return;
+                }
+                rsAssignColor(id);
+                rsActive.add(id);
+                el.classList.add('rs-compare-item--active');
+            }
+        }
+
+        rsRebuildChart();
+        rsUpdateScoresTable();
+    };
+
+    /* ── Init ─────────────────────────────────────────────────────── */
+    function rsInit() {
+        rsPopulateSphereBreakdown();
+        rsRebuildChart();
+        rsUpdateScoresTable();
+    }
+
     if (typeof Chart !== 'undefined') {
-        rsInitChart();
+        rsInit();
     } else {
-        var rsChartScript = document.createElement('script');
-        rsChartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
-        rsChartScript.onload = rsInitChart;
-        document.head.appendChild(rsChartScript);
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+        s.onload = rsInit;
+        document.head.appendChild(s);
     }
 })();
 </script>

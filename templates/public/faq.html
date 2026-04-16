@@ -29,11 +29,29 @@
         position: relative;
         padding: 10rem 0 7rem;
         background: #020617;
-        background-image:
-            radial-gradient(ellipse 70% 60% at 80% 20%, rgba(217, 119, 6, 0.12) 0%, transparent 60%),
-            radial-gradient(ellipse 50% 40% at 15% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 55%);
+        background-image: url("{{ url_for('static', filename='/assets/faqq.jpg') }}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         text-align: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        border-bottom: 0px solid rgba(255, 255, 255, 0.07);
+        overflow: hidden;
+    }
+
+    .faq-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(to bottom, rgba(2, 6, 23, 0.75) 0%, rgba(2, 6, 23, 0.65) 50%, rgba(2, 6, 23, 0.85) 100%),
+            radial-gradient(ellipse 70% 60% at 80% 20%, rgba(217, 119, 6, 0.18) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 40% at 15% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 55%);
+        z-index: 0;
+    }
+
+    .faq-hero > * {
+        position: relative;
+        z-index: 1;
     }
 
     .faq-hero-pre {
@@ -49,12 +67,12 @@
 
     .faq-hero-h1 {
         font-family: 'Outfit', sans-serif;
-        font-size: clamp(3rem, 8vw, 5rem);
+        font-size: clamp(3rem, 8vw, 8rem);
         font-weight: 800;
         letter-spacing: -0.04em;
         line-height: 0.95;
         margin-bottom: 2rem;
-        background: linear-gradient(to bottom, #ffffff, #94a3b8);
+        background: linear-gradient(to bottom, #fb6b11, #94a3b8);
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -88,7 +106,7 @@
         font-family: 'Outfit', sans-serif;
         font-size: 2rem;
         font-weight: 700;
-        color: #f8fafc;
+        color: #00ff6e;
         letter-spacing: -0.02em;
     }
 
@@ -103,21 +121,21 @@
     }
 
     .faq-item {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #0d1f35;
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 1rem;
         overflow: hidden;
         transition: all 0.3s ease;
     }
 
     .faq-item:hover {
-        border-color: rgba(217, 119, 6, 0.25);
-        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(245, 158, 11, 0.45);
+        background: #0f2540;
     }
 
     .faq-item-open {
-        border-color: rgba(217, 119, 6, 0.3);
-        background: rgba(217, 119, 6, 0.04);
+        border-color: rgba(245, 158, 11, 0.55);
+        background: #111f32;
     }
 
    
@@ -135,12 +153,11 @@
 
     .faq-trigger-h3 {
         font-family: 'Outfit', sans-serif;
-        font-size: 1.24rem;
-        font-weight: 600;
-        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #e2e8f0;
         line-height: 1.4;
         padding-right: 2rem;
-        font-weight: 700;
     }
 
     .faq-icon {
@@ -156,11 +173,13 @@
     }
 
     .faq-content {
-        padding: 0 2rem 2rem;
+        padding: 0 2rem 1.75rem;
         font-family: 'Inter', sans-serif;
-        font-size: 0.891rem;
+        font-size: 0.9rem;
         line-height: 1.8;
-        color: #ffffff;
+        color: #94a3b8;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        margin: 0 1.25rem;
     }
 
     /* --------------------------------------------------------------------------
@@ -196,7 +215,7 @@
         font-family: 'Outfit', sans-serif;
         font-size: 1.1rem;
         font-weight: 700;
-        color: #fbbf24;
+        color: #e9fb24;
         margin-bottom: 0.75rem;
         display: block;
     }
@@ -247,7 +266,7 @@
     <!-- Hero Section -->
     <section class="faq-hero">
         <div class="faq-container faq-no-pad">
-            <span class="faq-hero-pre">Support & Documentation</span>
+            
             <h1 class="faq-hero-h1">Knowledge Hub</h1>
             <p class="faq-hero-p">Answers to queries about DSTAIR and its development.</p>
         </div>
@@ -543,8 +562,8 @@
     <section class="faq-glossary">
         <div class="faq-container">
             <div class="faq-sec-header faq-text-center">
-                <span class="faq-hero-pre">Terminology</span>
-                <h2 class="faq-sec-title faq-title-force-lg">Anti-Corruption Glossary</h2>
+               
+                <h2 class="faq-sec-title faq-title-force-lg" style="color: #D97809;">Anti-Corruption Glossary</h2>
             </div>
 
             <div class="faq-glo-grid">

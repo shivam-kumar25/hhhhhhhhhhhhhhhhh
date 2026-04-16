@@ -295,7 +295,7 @@
 
     .abt-def-card {
         background: #ffffff;
-        border-radius: 2rem;
+        border-radius: 4.22rem;
         padding: 0;
         box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
         border: 1px solid #e8edf5;
@@ -304,13 +304,11 @@
         flex-direction: column;
         position: relative;
         overflow: hidden;
-    }
-
-    .abt-def-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 24px 60px rgba(217, 119, 6, 0.12);
         border-color: rgba(217, 119, 6, 0.25);
     }
+
 
     /* Top amber gradient accent bar */
     .abt-def-accent {
@@ -321,9 +319,7 @@
         transition: height 0.3s ease;
     }
 
-    .abt-def-card:hover .abt-def-accent {
-        height: 5px;
-    }
+    
 
     /* Large decorative background number */
     .abt-def-bg-label {
@@ -341,10 +337,7 @@
         z-index: 0;
     }
 
-    .abt-def-card:hover .abt-def-bg-label {
-        color: rgba(217, 119, 6, 0.09);
-        transform: scale(1.05) rotate(-3deg);
-    }
+
 
     .abt-def-cinner {
         padding: 2.5rem 2.5rem 3rem;
@@ -363,21 +356,15 @@
         width: 50%;
         height: 100%;
         background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.05), transparent);
-        transform: skewX(-20deg);
-        transition: all 0.8s ease;
+       
+        
         pointer-events: none;
-    }
-
-    .abt-def-card:hover::after {
-        left: 150%;
-    }
-
-    .abt-def-card:hover {
-        transform: translateY(-8px);
+        
         box-shadow: 0 40px 80px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(245, 158, 11, 0.2);
         border-color: #f59e0b;
     }
 
+    
     .abt-def-h3 {
         font-family: 'Outfit', sans-serif;
         font-size: 2rem;
@@ -402,14 +389,12 @@
         color: #d97706;
         transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         flex-shrink: 0;
-    }
-
-    .abt-def-card:hover .abt-def-ico {
         background: #d97706;
         color: #ffffff;
-        transform: rotate(-10deg) scale(1.15);
+        transform:  scale(1.15);
         box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2);
     }
+
 
     .abt-def-txt {
         font-family: 'Inter', sans-serif;
@@ -483,7 +468,7 @@
         padding: 4rem 1.5rem !important;
         background: #1a0e00;
         background-image:
-            radial-gradient(ellipse 80% 60% at 80% 10%, rgba(212, 140, 20, 0.25) 0%, transparent 60%),
+            radial-gradient(ellipse 80% 60% at 80% 10%, rgba(237, 198, 4, 0.2) 0%, transparent 60%),
             radial-gradient(ellipse 60% 50% at 10% 90%, rgba(139, 69, 19, 0.3) 0%, transparent 55%),
             radial-gradient(ellipse 50% 40% at 50% 50%, rgba(101, 48, 5, 0.4) 0%, transparent 80%);
         border-top: 1px solid rgba(16, 185, 129, 0.05);
@@ -615,7 +600,7 @@
         font-family: 'Outfit', sans-serif;
         font-size: 1.75rem;
         font-weight: 800;
-        color: #ffffff;
+        color: #7FFF00;
         margin: 0 0 1.25rem 0;
         display: flex;
         align-items: center;
@@ -649,7 +634,7 @@
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
-        color: #10b981;
+        color: #ffffff;
         margin-bottom: 0;
         box-shadow: 0 10px 20px rgba(16, 185, 129, 0.05);
         transition: all 0.4s ease;
@@ -1423,7 +1408,7 @@
                 <div class="abt-def-accent"></div>
                 <span class="abt-def-bg-label">01</span>
                 <div class="abt-def-cinner">
-                    <span class="abt-def-tag">Context</span>
+                    
                     <h3 class="abt-def-h3">
                         <div class="abt-def-ico">
                             <i class="fa-solid fa-layer-group"></i>
@@ -1442,7 +1427,6 @@
                 <div class="abt-def-accent"></div>
                 <span class="abt-def-bg-label">02</span>
                 <div class="abt-def-cinner">
-                    <span class="abt-def-tag">Distinction</span>
                     <h3 class="abt-def-h3">
                         <div class="abt-def-ico">
                             <i class="fa-solid fa-fingerprint"></i>
@@ -1564,17 +1548,14 @@
             <article class="abt-info-box">
                 <div class="abt-ib1-img">
                     <img src="{{ url_for('static', filename='assets/aboutPage/global.jpg') }}" alt="Global Scope">
-                    <div class="abt-ib1-badge">Global Scope</div>
+                    
                 </div>
                 <div class="abt-ib1-cont">
                     <h3 class="abt-ib1-h3">Which countries are covered?</h3>
                     <p class="abt-ib1-p">The user may choose <strong>any country</strong>. DSTAIR has been flexibly
                         designed to focus on virtually all regions where the absence of good governance imposes high
                         costs.</p>
-                    <div class="abt-ib1-bot">
-                        <span class="abt-ib1-bs">Flexible Sphere System</span>
-                        <div class="abt-ib1-bi"><i class="fa-solid fa-globe"></i></div>
-                    </div>
+                   
                 </div>
             </article>
 
@@ -1583,10 +1564,7 @@
 
                 <div class="abt-ib2-inner">
                     <div class="abt-ib2-left">
-                        <div class="abt-ib2-badge-wrap">
-                            <div class="abt-ib2-bico"><i class="fa-solid fa-file-shield"></i></div>
-                            <span class="abt-ib2-btxt">Data Sources</span>
-                        </div>
+                        
                         <h3 class="abt-ib2-h3">Where do the recommendations come from?</h3>
                     </div>
                     <div class="abt-ib2-right">

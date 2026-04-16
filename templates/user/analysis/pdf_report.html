@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ analysis.title }} — DSTAIR Report</title>
+<style>
+/* ── Print setup ── */
+@page {
+    size: A4;
+    margin: 18mm 16mm 18mm 16mm;
+}
+@media print {
+    .no-print { display: none !important; }
+    a { color: inherit; text-decoration: none; }
+    .page-break { page-break-before: always; }
+    .avoid-break { page-break-inside: avoid; }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+    font-size: 9.5pt;
+    color: #1a1a1a;
+    background: #fff;
+    line-height: 1.55;
+}
+
+/* ── Print button ── */
+.print-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #064E3B;
+    padding: .625rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    z-index: 100;
+}
+.print-bar span { color: rgba(255,255,255,.7); font-size: .8rem; }
+.print-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: #F97316; color: #fff;
+    border: none; border-radius: .4rem;
+    padding: .45rem 1.1rem;
+    font-size: .8rem; font-weight: 700; cursor: pointer;
+    transition: background .15s;
+}
+.print-btn:hover { background: #EA580C; }
+
+/* ── Page content (pushed below print bar on screen) ── */
+.report-body {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3.5rem 2rem 3rem;
+}
+@media print { .report-body { padding: 0; } }
+
+/* ── Cover ── */
+.cover {
+    border-bottom: 3px solid #064E3B;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.cover-left { flex: 1; min-width: 0; }
+.cover-label {
+    font-size: 7pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: #F97316;
+    margin-bottom: .4rem;
+}
+.cover-title {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #022C22;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+    margin-bottom: .5rem;
+}
+.cover-meta { font-size: 8pt; color: #6B7280; }
+.cover-meta span { margin-right: .75rem; }
+.cover-right { display: flex; align-items: center; gap: .75rem; }
+.cover-flag {
+    width: 56px; height: 40px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.2);
+}
+.cover-country-name {
+    font-size: 12pt; font-weight: 700; color: #064E3B;
+}
+
+/* ── Section headings ── */
+.section-title {
+    font-size: 10pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: #064E3B;
+    border-bottom: 1.5px solid #D1FAE5;
+    padding-bottom: .35rem;
+    margin-bottom: 1rem;
+    margin-top: 1.75rem;
+}
+
+/* ── Overall score banner ── */
+.score-banner {
+    background: #022C22;
+    border-radius: .75rem;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.score-big {
+    font-size: 36pt;
+    font-weight: 900;
+    color: #F97316;
+    letter-spacing: -.04em;
+    line-height: 1;
+}
+.score-big sub { font-size: 14pt; color: rgba(249,115,22,.5); font-weight: 700; }
+.score-info { color: #fff; }
+.score-info-title { font-size: 11pt; font-weight: 700; margin-bottom: .2rem; }
+.score-info-sub { font-size: 7.5pt; color: rgba(255,255,255,.5); }
+
+/* ── Sphere bar table ── */
+.sphere-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+.sphere-table th {
+    font-size: 7pt; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .1em; color: #9CA3AF;
+    padding: .4rem .6rem; text-align: left; border-bottom: 1px solid #E5E7EB;
+}
+.sphere-table td { padding: .5rem .6rem; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+.sphere-name { font-weight: 600; font-size: 9pt; color: #111827; }
+.bar-cell { width: 42%; }
+.bar-track { height: 7px; background: #F3F4F6; border-radius: 999px; overflow: hidden; }
+.bar-fill  { height: 100%; border-radius: 999px; }
+.bar-fill--strong   { background: #059669; }
+.bar-fill--moderate { background: #D97706; }
+.bar-fill--weak     { background: #DC2626; }
+.score-pct { font-size: 8.5pt; font-weight: 700; font-variant-numeric: tabular-nums; }
+.score-pct--strong   { color: #059669; }
+.score-pct--moderate { color: #D97706; }
+.score-pct--weak     { color: #DC2626; }
+.tier-badge {
+    display: inline-block; border-radius: .25rem;
+    padding: .1rem .45rem; font-size: 7pt; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .07em;
+}
+.tier-badge--strong   { background: #D1FAE5; color: #065F46; }
+.tier-badge--moderate { background: #FEF3C7; color: #92400E; }
+.tier-badge--weak     { background: #FEE2E2; color: #991B1B; }
+
+/* ── Per-question breakdown ── */
+.q-sphere-heading {
+    background: #F9FAFB; border-radius: .5rem;
+    padding: .5rem .875rem;
+    font-weight: 700; font-size: 9.5pt; color: #022C22;
+    margin-top: 1.25rem; margin-bottom: .5rem;
+    border-left: 3px solid #064E3B;
+}
+.q-row {
+    display: flex; align-items: flex-start;
+    gap: .75rem; padding: .5rem 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+.q-id { font-size: 7pt; color: #9CA3AF; font-weight: 700; min-width: 2.5rem; padding-top: .15rem; }
+.q-content { flex: 1; font-size: 8.5pt; color: #374151; line-height: 1.5; }
+.q-score-block { flex-shrink: 0; text-align: center; min-width: 2.5rem; }
+.q-score-num { font-size: 12pt; font-weight: 800; line-height: 1; }
+.q-score-of { font-size: 6.5pt; color: #9CA3AF; }
+.q-na { font-size: 8pt; color: #9CA3AF; font-weight: 600; }
+
+/* ── Tools ── */
+.tools-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+    margin-bottom: .5rem;
+}
+.tool-card {
+    border-radius: .625rem; padding: .75rem 1rem;
+    border: 1px solid;
+}
+.tool-card--triggered { background: #FEF3C7; border-color: #F59E0B; }
+.tool-card--default   { background: #F1F5F9; border-color: #CBD5E1; }
+.tool-name { font-size: 9pt; font-weight: 700; color: #1e3a5f; margin-bottom: .2rem; }
+.tool-card--triggered .tool-name { color: #92400E; }
+.tool-desc { font-size: 7.5pt; color: #64748B; line-height: 1.5; }
+.tool-card--triggered .tool-desc { color: #78350F; }
+.triggered-tag {
+    display: inline-block; font-size: 6.5pt; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .08em;
+    background: #F59E0B; color: #fff;
+    border-radius: .25rem; padding: .1rem .45rem;
+    margin-bottom: .35rem;
+}
+
+/* ── AI section ── */
+.ai-sphere-agg-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: .625rem;
+    margin-bottom: 1rem;
+}
+.ai-agg-card {
+    border-radius: .5rem; padding: .625rem .875rem;
+    border: 1px solid;
+}
+.ai-agg-card--strong   { background: #ECFDF5; border-color: #A7F3D0; }
+.ai-agg-card--moderate { background: #FFFBEB; border-color: #FDE68A; }
+.ai-agg-card--weak     { background: #FEF2F2; border-color: #FECACA; }
+.ai-agg-sphere { font-size: 7.5pt; font-weight: 700; color: #374151; margin-bottom: .2rem; }
+.ai-agg-score  { font-size: 13pt; font-weight: 900; letter-spacing: -.03em; line-height: 1; }
+.ai-agg-score--strong   { color: #059669; }
+.ai-agg-score--moderate { color: #D97706; }
+.ai-agg-score--weak     { color: #DC2626; }
+.ai-bar-track { height: 5px; background: rgba(0,0,0,.08); border-radius: 999px; margin-top: .35rem; overflow: hidden; }
+.ai-bar-fill  { height: 100%; border-radius: 999px; }
+.ai-bar-fill--strong   { background: #059669; }
+.ai-bar-fill--moderate { background: #D97706; }
+.ai-bar-fill--weak     { background: #DC2626; }
+
+.ai-q-row { display: flex; gap: .625rem; padding: .45rem 0; border-bottom: 1px solid #F3F4F6; align-items: flex-start; }
+.ai-q-id { font-size: 7pt; color: #9CA3AF; font-weight: 700; min-width: 2.5rem; padding-top: .1rem; }
+.ai-q-content { flex: 1; }
+.ai-q-text { font-size: 8.5pt; color: #374151; line-height: 1.5; }
+.ai-q-reasoning { font-size: 7.5pt; color: #6B7280; margin-top: .2rem; font-style: italic; line-height: 1.5; }
+.ai-q-score { flex-shrink: 0; text-align: center; min-width: 2.5rem; }
+.ai-q-score-num { font-size: 11pt; font-weight: 800; line-height: 1; }
+
+/* ── Footer ── */
+.report-footer {
+    margin-top: 2rem; padding-top: 1rem;
+    border-top: 1px solid #E5E7EB;
+    display: flex; justify-content: space-between;
+    font-size: 7pt; color: #9CA3AF;
+}
+</style>
+</head>
+<body>
+
+<!-- Print bar (hidden when printing) -->
+<div class="print-bar no-print">
+    <span>Press the button to save as PDF, or use your browser's print dialog.</span>
+    <button class="print-btn" onclick="window.print()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / Save PDF
+    </button>
+</div>
+
+<div class="report-body">
+
+    <!-- ── Cover ── -->
+    {% set country_obj = analysis.country_obj %}
+    <div class="cover avoid-break">
+        <div class="cover-left">
+            <div class="cover-label">DSTAIR — Institutional Integrity Assessment</div>
+            <div class="cover-title">{{ analysis.title }}</div>
+            <div class="cover-meta">
+                <span>Country: <strong>{{ analysis.country }}</strong></span>
+                {% if analysis.created_at %}
+                <span>Created: {{ analysis.created_at.strftime('%B %d, %Y') }}</span>
+                {% endif %}
+                {% if analysis.updated_at %}
+                <span>Updated: {{ analysis.updated_at.strftime('%B %d, %Y') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="cover-right">
+            {% if country_obj and country_obj.iso2_code %}
+            <img class="cover-flag" src="https://flagcdn.com/w80/{{ country_obj.iso2_code.lower() }}.png" alt="{{ analysis.country }}">
+            {% endif %}
+            <div class="cover-country-name">{{ analysis.country }}</div>
+        </div>
+    </div>
+
+    <!-- ── Overall Score & Sphere Summary ── -->
+    {% set answers = analysis.answers_dict or {} %}
+    {% set all_scores = [] %}
+    {% for sphere in spheres %}
+        {% for q in sphere.questions %}
+            {% if answers.get(q.id|string) %}
+                {% set _ = all_scores.append(answers[q.id|string]|int) %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+
+    {% if all_scores %}
+    {% set total_score = all_scores | sum %}
+    {% set max_score = all_scores | length * 7 %}
+    {% set pct = (total_score / max_score * 100) | round(1) %}
+
+    <div class="section-title">Overall Assessment</div>
+    <div class="score-banner avoid-break">
+        <div class="score-big">{{ pct }}<sub>%</sub></div>
+        <div class="score-info">
+            <div class="score-info-title">Institutional Integrity Score</div>
+            <div class="score-info-sub">{{ total_score }} of {{ max_score }} points · {{ all_scores | length }} questions answered</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Sphere breakdown table -->
+    <div class="section-title">Sphere Breakdown</div>
+    <table class="sphere-table avoid-break">
+        <thead>
+            <tr>
+                <th>Sphere</th>
+                <th class="bar-cell">Score</th>
+                <th>%</th>
+                <th>Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for sphere in spheres %}
+            {% set sphere_scores = [] %}
+            {% for q in sphere.questions %}
+                {% if answers.get(q.id|string) %}
+                    {% set _ = sphere_scores.append(answers[q.id|string]|int) %}
+                {% endif %}
+            {% endfor %}
+            {% if sphere_scores %}
+                {% set s_total = sphere_scores | sum %}
+                {% set s_max = sphere_scores | length * 7 %}
+                {% set s_pct = (s_total / s_max * 100) | round(1) %}
+                {% set tier = 'strong' if s_pct >= 70 else ('moderate' if s_pct >= 40 else 'weak') %}
+            <tr>
+                <td class="sphere-name">{{ sphere.label }}</td>
+                <td class="bar-cell">
+                    <div class="bar-track">
+                        <div class="bar-fill bar-fill--{{ tier }}" style="width:{{ s_pct }}%"></div>
+                    </div>
+                </td>
+                <td class="score-pct score-pct--{{ tier }}">{{ s_pct }}%</td>
+                <td><span class="tier-badge tier-badge--{{ tier }}">{{ tier }}</span></td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- ── Per-question results ── -->
+    <div class="section-title page-break">Question-by-Question Results</div>
+    {% for sphere in spheres %}
+        {% set sphere_answered = [] %}
+        {% for q in sphere.questions %}
+            {% if answers.get(q.id|string) %}{% set _ = sphere_answered.append(q) %}{% endif %}
+        {% endfor %}
+        {% if sphere_answered %}
+        <div class="q-sphere-heading avoid-break">{{ sphere.label }}</div>
+        {% for q in sphere_answered %}
+            {% set score = answers.get(q.id|string)|int %}
+            {% set norm = (score - 1) / 6 %}
+            {% set stier = 'strong' if norm >= 0.7 else ('moderate' if norm >= 0.4 else 'weak') %}
+            {% set score_color = '#059669' if stier == 'strong' else ('#D97706' if stier == 'moderate' else '#DC2626') %}
+        <div class="q-row">
+            <div class="q-id">Q{{ q.id }}</div>
+            <div class="q-content">{{ q.content }}</div>
+            <div class="q-score-block">
+                <div class="q-score-num" style="color:{{ score_color }}">{{ score }}</div>
+                <div class="q-score-of">/ 7</div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+    <!-- ── All tools ── -->
+    {% if tools %}
+    <div class="section-title">All Assessed Tools</div>
+    <div class="tools-grid">
+        {% for tool in tools %}
+        <div class="tool-card {% if tool.id in triggered_ids %}tool-card--triggered{% else %}tool-card--default{% endif %} avoid-break">
+            {% if tool.id in triggered_ids %}<div class="triggered-tag">Triggered</div>{% endif %}
+            <div class="tool-name">{{ tool.name }}</div>
+            {% if tool.description %}
+            <div class="tool-desc">{{ tool.description }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ── AI Analysis ── -->
+    {% if ai_analysis and ai_analysis.status == 'completed' %}
+    {% set ai_scores   = ai_analysis.ai_scores_for_all_questions or {} %}
+    {% set ai_comments = ai_analysis.ai_comments_for_all_questions or {} %}
+    {% set ai_meta     = ai_analysis.metadata_json or {} %}
+    {% set aggregates  = ai_meta.get('aggregates', {}) %}
+
+    <div class="section-title page-break">AI Institutional Evaluation</div>
+
+    {% set ai_provider = ai_meta.get('provider_used', '') %}
+    {% set ai_model = ai_meta.get('model_used', '') %}
+    {% if ai_provider %}
+    <p style="font-size:7.5pt;color:#9CA3AF;margin-bottom:.875rem;">
+        Evaluated by {{ ai_provider }}{% if ai_model %} / {{ ai_model }}{% endif %}
+        {% if ai_meta.get('completion_timestamp') %} · {{ ai_meta.completion_timestamp[:10] }}{% endif %}
+    </p>
+    {% endif %}
+
+    <!-- AI sphere aggregates grid -->
+    {% if aggregates %}
+    <div class="ai-sphere-agg-grid">
+        {% for sphere in spheres %}
+            {% set agg = aggregates.get(sphere.name, 0) | float %}
+            {% set tier = 'strong' if agg >= 0.7 else ('moderate' if agg >= 0.4 else 'weak') %}
+        <div class="ai-agg-card ai-agg-card--{{ tier }} avoid-break">
+            <div class="ai-agg-sphere">{{ sphere.label }}</div>
+            <div class="ai-agg-score ai-agg-score--{{ tier }}">{{ "%.2f"|format(agg) }}</div>
+            <div class="ai-bar-track">
+                <div class="ai-bar-fill ai-bar-fill--{{ tier }}" style="width:{{ (agg*100)|int }}%"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- AI per-question breakdown -->
+    {% for sphere in spheres %}
+        {% if sphere.questions %}
+        <div class="q-sphere-heading avoid-break">{{ sphere.label }}</div>
+        {% for q in sphere.questions %}
+            {% set qid = q.id | string %}
+            {% set raw = ai_scores.get(qid) %}
+            {% set reasoning = ai_comments.get(qid, '') %}
+            {% if raw is not none and raw != 'NA' %}
+                {% set s = raw | int %}
+                {% set norm = (s - 1) / 6 %}
+                {% set stier = 'strong' if norm >= 0.7 else ('moderate' if norm >= 0.4 else 'weak') %}
+                {% set sc = '#059669' if stier == 'strong' else ('#D97706' if stier == 'moderate' else '#DC2626') %}
+        <div class="ai-q-row">
+            <div class="ai-q-id">Q{{ q.id }}</div>
+            <div class="ai-q-content">
+                <div class="ai-q-text">{{ q.content }}</div>
+                {% if reasoning %}
+                <div class="ai-q-reasoning">{{ reasoning }}</div>
+                {% endif %}
+            </div>
+            <div class="ai-q-score">
+                <div class="ai-q-score-num" style="color:{{ sc }}">{{ s }}</div>
+                <div class="q-score-of">/ 7</div>
+            </div>
+        </div>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+    {% endif %}
+
+    <!-- ── Footer ── -->
+    <div class="report-footer no-print">
+        <span>DSTAIR — Institutional Integrity Platform</span>
+        <span>{{ analysis.title }} · {{ analysis.country }}</span>
+    </div>
+
+</div>
+
+<script>
+// Auto-open print dialog when the page loads in a new tab.
+// Small delay lets images (flags) load first.
+window.addEventListener('load', function () {
+    setTimeout(function () { window.print(); }, 800);
+});
+</script>
+
+</body>
+</html>

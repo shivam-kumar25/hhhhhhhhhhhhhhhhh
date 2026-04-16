@@ -1,5 +1,6 @@
+import io
 import logging
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort, send_file, current_app
 from flask_login import login_required, current_user
 from models.analysis_models import Analysis
 from models.core_models import Comment
@@ -62,34 +63,85 @@ def tab(analysis_id, tab_name, username=None):
         )
 
     if tab_name == 'results':
+        from models.ai_analysis_models import AIAnalysis
         spheres = analysis_service.get_all_spheres()
-        radar_analyses = analysis_service.get_radar_chart_analyses(
-            analysis.country, analysis
-        )
-        # Pre-serialize for JS: ORM objects are not JSON-serializable
-        radar_series = []
-        for i, a in enumerate(radar_analyses):
-            if isinstance(a, dict):
-                radar_series.append({
-                    'title': a.get('title', 'AI Baseline'),
-                    'answers_dict': a.get('answers_dict', {}),
-                    'is_current': False,
-                    'is_ai': a.get('is_ai', False),
-                })
-            else:
-                radar_series.append({
-                    'title': a.title,
-                    'answers_dict': a.answers_dict or {},
-                    'is_current': (i == 0),
-                    'is_ai': False,
-                })
         sphere_labels = [{'name': s.name, 'label': s.label} for s in spheres]
+        uid = current_user.unique_database_identifier_integer
+
+        # Always-on current series
+        current_series = {
+            'id': 'current',
+            'title': analysis.title,
+            'country': analysis.country,
+            'answers_dict': analysis.answers_dict or {},
+            'type': 'current',
+        }
+
+        comparison_pool = []
+
+        # Current user's other analyses (all countries)
+        my_analyses = Analysis.get_all_for_user(uid)
+        for a in my_analyses:
+            if a.id == analysis.id:
+                continue
+            comparison_pool.append({
+                'id': f'mine-{a.id}',
+                'title': a.title,
+                'country': a.country,
+                'answers_dict': a.answers_dict or {},
+                'type': 'mine',
+            })
+
+        # AI baseline for this country (pre-added to comparison pool)
+        ai_eval = AIAnalysis.get_by_country(analysis.country)
+        if ai_eval and ai_eval.status == 'completed':
+            nested = analysis_service._transform_ai_scores_to_nested(
+                ai_eval.ai_scores_for_all_questions
+            )
+            comparison_pool.append({
+                'id': f'ai-{ai_eval.id}',
+                'title': f'AI Baseline — {analysis.country}',
+                'country': analysis.country,
+                'answers_dict': nested,
+                'type': 'ai',
+            })
+
+        # All other completed AI analyses (for the "+" add button)
+        all_ai = AIAnalysis.query.filter_by(status='completed').order_by(AIAnalysis.country).all()
+        ai_addable = []
+        added_ai_countries = {analysis.country} if (ai_eval and ai_eval.status == 'completed') else set()
+        for a in all_ai:
+            if a.country in added_ai_countries:
+                continue
+            nested = analysis_service._transform_ai_scores_to_nested(
+                a.ai_scores_for_all_questions
+            )
+            ai_addable.append({
+                'id': f'ai-{a.id}',
+                'title': f'AI Baseline — {a.country}',
+                'country': a.country,
+                'answers_dict': nested,
+                'type': 'ai',
+            })
+
+        # Other users' analyses for the same country (up to 6 options)
+        other_analyses = Analysis.get_by_country_excluding_user(analysis.country, uid)
+        for a in other_analyses[:6]:
+            comparison_pool.append({
+                'id': f'other-{a.id}',
+                'title': a.title,
+                'country': a.country,
+                'answers_dict': a.answers_dict or {},
+                'type': 'other',
+            })
+
         return render_template(
             'user/analysis/partials/results.html',
             analysis=analysis,
             spheres=spheres,
-            radar_analyses=radar_analyses,
-            radar_series=radar_series,
+            current_series=current_series,
+            ai_addable=ai_addable,
+            comparison_pool=comparison_pool,
             sphere_labels=sphere_labels
         )
 
@@ -118,6 +170,51 @@ def tab(analysis_id, tab_name, username=None):
         )
 
     abort(404)
+
+
+# ── PDF Report ──────────────────────────────────────────────────────────────
+
+@analysis_bp.route('/regular_user/<username>/analysis/<int:analysis_id>/pdf', endpoint='pdf_report')
+@analysis_bp.route('/analysis/<int:analysis_id>/pdf')
+@login_required
+def pdf_report(analysis_id, username=None):
+    """Generate and stream a PDF report for direct download."""
+    analysis = Analysis.get_by_id_and_user(
+        analysis_id, current_user.unique_database_identifier_integer
+    )
+    if not analysis:
+        abort(404)
+
+    spheres = analysis_service.get_all_spheres()
+    tools = analysis_service.get_sorted_tools(analysis_id)
+    triggered_ids = set(analysis.triggered_tools or [])
+
+    from models.ai_analysis_models import AIAnalysis
+    from services.pdf_service import generate_pdf
+    ai_analysis = AIAnalysis.get_by_country(analysis.country)
+
+    try:
+        pdf_bytes = generate_pdf(
+            analysis=analysis,
+            spheres=spheres,
+            tools=tools,
+            triggered_ids=triggered_ids,
+            static_folder=current_app.static_folder,
+            ai_analysis=ai_analysis,
+            username=current_user.user_account_unique_username_string,
+        )
+    except Exception:
+        logger.exception('PDF generation failed for analysis %s', analysis_id)
+        raise
+
+    buf = io.BytesIO(pdf_bytes)
+    filename = f"DSTAIR_{analysis.country}_{analysis.id}.pdf"
+    return send_file(
+        buf,
+        mimetype='application/pdf',
+        as_attachment=False,
+        download_name=filename,
+    )
 
 
 # ── Analysis CRUD ───────────────────────────────────────────────────────────
