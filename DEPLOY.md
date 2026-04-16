@@ -1,271 +1,384 @@
-# DSTAIR — Deployment Guide
+# DSTAIR — GoDaddy Deployment Guide
 
-Complete step-by-step deployment for all hosting options.
-Pick your section and follow it top-to-bottom.
+## Deploy from GitHub to GoDaddy cPanel (Shared Hosting)
+
+> **Hosting required:** GoDaddy Linux Web Hosting (Economy / Deluxe / Ultimate).
+> These plans include cPanel + Phusion Passenger + Python App support.
+> Windows hosting will NOT work — Python apps require Linux.
 
 ---
 
-## Before You Deploy (All Platforms)
+## Overview
 
-### 1. Generate a secure SECRET_KEY
+The deployment flow is:
+
+```
+Your Machine  →  GitHub Repo  →  GoDaddy Server (SSH clone)  →  cPanel Python App
+```
+
+The SQLite database (`instance/database.db`) is tracked in the repo, so your
+current data ships with the code — no manual seeding needed on the server.
+
+---
+
+## Part 1 — Prepare Your Repo (Do This Once, Locally)
+
+### 1.1 Make sure the database file is tracked
+
+The `.gitignore` already allows `instance/database.db`. Verify it is staged:
+
+```bash
+cd main-dstair
+git status instance/database.db
+```
+
+If it shows **"Untracked"** or is missing, force-add it:
+
+```bash
+git add -f instance/database.db
+```
+
+> `database.db-shm` and `database.db-wal` (WAL lock files) must NOT be committed.
+> The `.gitignore` already excludes them via `instance/*` + `!instance/database.db`.
+
+### 1.2 Commit and push everything
+
+```bash
+git add .
+git commit -m "chore: prepare for GoDaddy deploy"
+git push origin main
+```
+
+Make sure your GitHub repo is **public** (or you'll need an SSH deploy key on the server).
+
+---
+
+## Part 2 — GoDaddy cPanel: Create the Python App
+
+### 2.1 Open cPanel
+
+```
+GoDaddy Account → My Products → Web Hosting → Manage → cPanel
+```
+
+### 2.2 Create the Python App
+
+1. In cPanel, scroll to **Software** → click **"Setup Python App"**
+2. Click **"Create Application"**
+3. Fill in these exact fields:
+
+   | Field | Value |
+   | --- | --- |
+   | Python version | `3.11` (pick the highest 3.11.x available) |
+   | Application root | `dstair` |
+   | Application URL | `/` (root of your domain) |
+   | Application startup file | `passenger_wsgi.py` |
+   | Application Entry point | `application` |
+
+4. Click **Create**
+
+cPanel will create:
+
+- The folder `/home/YOUR_USERNAME/dstair/`
+- A virtualenv at `/home/YOUR_USERNAME/virtualenv/dstair/3.11/`
+
+> Write down `YOUR_USERNAME` — you'll need it in every path below.
+> Find it in cPanel top-right corner or run `whoami` in Terminal.
+
+---
+
+## Part 3 — SSH Into the Server and Clone the Repo
+
+### 3.1 Enable SSH on GoDaddy
+
+```
+cPanel → SSH Access → Manage SSH Keys → Generate New Key → Authorize it
+```
+
+Then connect from your local machine:
+
+```bash
+ssh YOUR_USERNAME@YOUR_DOMAIN_OR_IP
+```
+
+(GoDaddy also has a Terminal inside cPanel — you can use that instead.)
+
+### 3.2 Remove the empty folder cPanel created
+
+cPanel created an empty `/home/YOUR_USERNAME/dstair/` folder.
+Delete it so git can clone into that path:
+
+```bash
+rm -rf ~/dstair
+```
+
+### 3.3 Clone your GitHub repo
+
+```bash
+cd ~
+git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git dstair
+```
+
+This clones the repo into `/home/YOUR_USERNAME/dstair/`.
+
+After cloning, verify the structure looks right:
+
+```bash
+ls ~/dstair
+# Should show: app.py  passenger_wsgi.py  config.py  requirements.txt
+# instance/  routes/  models/  templates/  static/  ...
+```
+
+Also confirm the database arrived:
+
+```bash
+ls ~/dstair/instance/
+# Should show: database.db
+```
+
+---
+
+## Part 4 — Install Dependencies
+
+### 4.1 Activate the virtualenv cPanel created
+
+```bash
+source ~/virtualenv/dstair/3.11/bin/activate
+```
+
+Your prompt should now start with `(dstair)`.
+
+### 4.2 Install all packages
+
+```bash
+cd ~/dstair
+pip install -r requirements.txt
+```
+
+This will take 1–2 minutes. Wait for it to fully finish.
+
+### 4.3 Verify the key packages installed
+
+```bash
+pip show flask flask-sqlalchemy reportlab
+# Each should show a Version line
+```
+
+---
+
+## Part 5 — Create the .env File on the Server
+
+### 5.1 Generate a secure SECRET_KEY
 
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Copy the output — you'll need it in your `.env`.
+Copy the output — it will look like:
+`a3f9b2c1e4d5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1`
 
-### 2. Prepare your .env file
+### 5.2 Get your Groq API key
 
-Duplicate `.env.example` → `.env` and fill in real values:
+Sign up at [console.groq.com](https://console.groq.com) → API Keys → Create new key.
+
+### 5.3 Create the .env file
+
+```bash
+nano ~/dstair/.env
+```
+
+Paste this — replacing the placeholder values with real ones:
 
 ```
-SECRET_KEY=<paste the key you generated above>
+SECRET_KEY=PASTE_YOUR_GENERATED_KEY_HERE
 FLASK_ENV=production
-DATABASE_URI=sqlite:///database.db
-GROQ_API_KEY=<your Groq key>
+DATABASE_URI=sqlite:////home/YOUR_USERNAME/dstair/instance/database.db
+GROQ_API_KEY=PASTE_YOUR_GROQ_KEY_HERE
 ```
 
-> **Never commit `.env` to Git.** It's already in `.gitignore`.
+> **Critical:** `DATABASE_URI` uses **4 slashes** (`sqlite:////`).
+> The first two are the SQLite scheme, the third and fourth begin the absolute path.
+> Replace `YOUR_USERNAME` with your actual cPanel username.
+
+Save: `Ctrl+X` → `Y` → `Enter`
+
+### 5.4 Lock down the .env file permissions
+
+```bash
+chmod 600 ~/dstair/.env
+```
 
 ---
 
-## Option A — GoDaddy Shared Hosting (cPanel)
+## Part 6 — Set Folder Permissions
 
-> Works on GoDaddy Economy / Deluxe / Ultimate Web Hosting plans.
-
-### Step 1 — Log into cPanel
-Go to: **GoDaddy → My Products → Web Hosting → Manage → cPanel**
-
-### Step 2 — Create a Python App
-1. In cPanel, find **"Setup Python App"** (under Software section)
-2. Click **"Create Application"**
-3. Fill in:
-   - **Python version**: `3.11` (or highest available)
-   - **Application root**: `dstair` (this will be `/home/USERNAME/dstair`)
-   - **Application URL**: `/` (or a subdirectory if you want)
-   - **Application startup file**: `passenger_wsgi.py`
-   - **Application Entry point**: `application`
-4. Click **Create**
-
-### Step 3 — Upload your files
-In cPanel File Manager (or via FTP/SSH):
-1. Navigate to the folder cPanel created (e.g. `/home/USERNAME/dstair/`)
-2. Upload **all project files** there (everything in `main-dstair/`)
-
-Your folder should look like:
-```
-/home/USERNAME/dstair/
-    app.py
-    wsgi.py
-    passenger_wsgi.py
-    config.py
-    extensions.py
-    run.py
-    requirements.txt
-    .env                  ← create this manually
-    static/
-    templates/
-    routes/
-    models/
-    ...
-```
-
-### Step 4 — Create your .env file
-In cPanel File Manager, create a new file named `.env` in the app folder with:
-```
-SECRET_KEY=your-generated-key-here
-FLASK_ENV=production
-DATABASE_URI=sqlite:///database.db
-GROQ_API_KEY=your-groq-key-here
-```
-
-### Step 5 — Install dependencies
-Back in **Setup Python App**, click on your app → **"Open Terminal"** (or use cPanel Terminal):
+The web process needs write access to the `instance/` folder (for SQLite writes):
 
 ```bash
-source /home/USERNAME/virtualenv/dstair/3.11/bin/activate
+chmod 755 ~/dstair/instance
+chmod 644 ~/dstair/instance/database.db
+```
+
+Also allow the static/uploads directory if it exists:
+
+```bash
+mkdir -p ~/dstair/static/uploads
+chmod 755 ~/dstair/static/uploads
+```
+
+---
+
+## Part 7 — Point cPanel to the Cloned Repo
+
+When you cloned into `dstair/`, it replaced the folder cPanel originally created —
+so cPanel already points to the right place.
+
+Go back to **cPanel → Setup Python App** → click on your `dstair` app.
+
+Confirm these fields still show correctly:
+
+| Field | Expected value |
+| --- | --- |
+| Application root | `dstair` |
+| Application startup file | `passenger_wsgi.py` |
+| Application Entry point | `application` |
+
+If anything changed, fix it here and hit **Save**.
+
+---
+
+## Part 8 — Restart and Test
+
+### 8.1 Restart the app
+
+In **cPanel → Setup Python App** → click your app → click **Restart**.
+
+Or via SSH:
+
+```bash
+touch ~/dstair/passenger_wsgi.py
+```
+
+(Touching the startup file triggers Passenger to restart.)
+
+### 8.2 Visit your site
+
+Open your domain in a browser. The app should load.
+
+### 8.3 If you see a 500 error
+
+Check the error log:
+
+```bash
+# cPanel error log (check the last 30 lines)
+tail -30 ~/logs/YOUR_DOMAIN.error.log
+
+# Or in cPanel → Logs → Error Log
+```
+
+Common causes and fixes:
+
+| Error message | Fix |
+| --- | --- |
+| `FATAL: SECRET_KEY contains insecure default` | Check `.env` — `SECRET_KEY` must be set |
+| `ModuleNotFoundError` | Re-run `pip install -r requirements.txt` with virtualenv active |
+| `sqlite3.OperationalError: unable to open database` | Check `DATABASE_URI` path in `.env` — must use 4 slashes and correct username |
+| `Permission denied` on `instance/` | Run `chmod 755 ~/dstair/instance` |
+| `No module named 'app'` | Confirm `passenger_wsgi.py` exists and `Application root` in cPanel = `dstair` |
+
+---
+
+## Part 9 — Point Your Domain (If Not Already)
+
+If you bought the domain on GoDaddy and the hosting is on the same account,
+the domain is already pointed to your hosting — no DNS changes needed.
+
+If the domain is on a **different** GoDaddy account or registrar:
+
+1. Find your hosting server IP:
+   - cPanel → **Server Information** → look for **Shared IP Address**
+2. In the domain's DNS settings, add:
+   - `A record` → `@` → `YOUR_HOSTING_IP`
+   - `A record` → `www` → `YOUR_HOSTING_IP`
+   - TTL: `600`
+3. DNS propagation takes up to 24 hours.
+
+---
+
+## Part 10 — Updating the App After Changes
+
+Whenever you push new code to GitHub, update the server:
+
+```bash
+ssh YOUR_USERNAME@YOUR_DOMAIN_OR_IP
+
+# Pull latest code
 cd ~/dstair
+git pull origin main
+
+# If requirements.txt changed, reinstall:
+source ~/virtualenv/dstair/3.11/bin/activate
 pip install -r requirements.txt
+
+# Restart the app
+touch ~/dstair/passenger_wsgi.py
 ```
 
-### Step 6 — Initialize the database
-```bash
-# Still in the activated virtualenv:
-export FLASK_ENV=production
-python -c "from app import create_app; from utils.db_init import ensure_database_initialized; app = create_app(); app.app_context().push(); ensure_database_initialized(force_seed=True)"
-```
+### Updating the database
 
-### Step 7 — Restart the app
-In cPanel **Setup Python App** → click your app → **Restart**.
+If you want the latest local database state on the server:
 
-### Step 8 — Test
-Visit your domain. If you see a 500 error, check:
-- cPanel → Logs → Error Log
-- Make sure `.env` has a valid `SECRET_KEY`
+1. Commit the updated `instance/database.db` locally:
+
+   ```bash
+   git add instance/database.db
+   git commit -m "chore: update database snapshot"
+   git push origin main
+   ```
+
+2. On the server:
+
+   ```bash
+   cd ~/dstair
+   git pull origin main
+   touch passenger_wsgi.py
+   ```
+
+> If the server database has data you want to keep (user activity, analyses),
+> do NOT overwrite it with a git pull. Instead, skip `git pull` on the db file
+> or use `git checkout HEAD -- instance/database.db` only when you explicitly
+> want to reset the server data back to your local snapshot.
 
 ---
 
-## Option B — GoDaddy VPS (Linux Server)
+## Quick Reference Cheat Sheet
 
-> Works on GoDaddy VPS plans with root SSH access.
-
-### Step 1 — SSH into your server
 ```bash
-ssh root@YOUR_SERVER_IP
+# ── First deploy (run once) ──────────────────────────────────────
+ssh YOUR_USERNAME@YOUR_DOMAIN
+rm -rf ~/dstair
+git clone https://github.com/YOU/REPO.git dstair
+source ~/virtualenv/dstair/3.11/bin/activate
+cd ~/dstair && pip install -r requirements.txt
+nano ~/dstair/.env                          # fill in SECRET_KEY, DATABASE_URI, GROQ_API_KEY
+chmod 600 ~/dstair/.env
+chmod 755 ~/dstair/instance
+chmod 644 ~/dstair/instance/database.db
+touch ~/dstair/passenger_wsgi.py            # restart
+
+# ── Every subsequent update ──────────────────────────────────────
+cd ~/dstair && git pull origin main
+touch passenger_wsgi.py
 ```
-
-### Step 2 — Upload your project files
-From your local machine:
-```bash
-scp -r ./main-dstair/* root@YOUR_SERVER_IP:/tmp/dstair_upload/
-```
-
-Or use FileZilla (SFTP, port 22).
-
-### Step 3 — Run the setup script
-On the server:
-```bash
-# First, create the app directory and move files
-mkdir -p /home/dstair/app
-cp -r /tmp/dstair_upload/* /home/dstair/app/
-
-# Edit the domain in setup script
-nano /home/dstair/app/deploy/setup_vps.sh
-# Change: DOMAIN="YOUR_DOMAIN" → DOMAIN="yourdomain.com"
-
-# Run it
-chmod +x /home/dstair/app/deploy/setup_vps.sh
-bash /home/dstair/app/deploy/setup_vps.sh
-```
-
-### Step 4 — Create .env on the server
-```bash
-nano /home/dstair/app/.env
-```
-Add:
-```
-SECRET_KEY=your-generated-key-here
-FLASK_ENV=production
-DATABASE_URI=sqlite:////home/dstair/app/instance/database.db
-GROQ_API_KEY=your-groq-key-here
-```
-
-### Step 5 — Initialize the database
-```bash
-cd /home/dstair/app
-source venv/bin/activate
-export FLASK_ENV=production
-python -c "from app import create_app; from utils.db_init import ensure_database_initialized; app = create_app(); app.app_context().push(); ensure_database_initialized(force_seed=True)"
-```
-
-### Step 6 — Start the app
-```bash
-sudo systemctl start dstair
-sudo systemctl status dstair   # should show: active (running)
-```
-
-### Step 7 — Get free SSL (HTTPS)
-```bash
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
-```
-Follow the prompts. Certbot auto-renews every 90 days.
-
-### Step 8 — Point your GoDaddy domain to this server
-In GoDaddy DNS settings:
-- Add an **A record**: `@` → `YOUR_SERVER_IP`
-- Add an **A record**: `www` → `YOUR_SERVER_IP`
-- TTL: 600
-
----
-
-## Option C — Railway (Easiest Cloud Option)
-
-> Free tier available. No server management needed.
-
-### Step 1 — Push to GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/dstair.git
-git push -u origin main
-```
-
-### Step 2 — Deploy on Railway
-1. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
-2. Select your repo
-3. Railway auto-detects the `Procfile` and deploys
-
-### Step 3 — Set environment variables
-In Railway dashboard → Variables:
-```
-SECRET_KEY = your-generated-key-here
-FLASK_ENV  = production
-GROQ_API_KEY = your-groq-key-here
-```
-
-### Step 4 — Add your domain
-Railway dashboard → Settings → Domains → Add custom domain → enter your GoDaddy domain.
-
-Then in GoDaddy DNS, add a CNAME record:
-- `@` or `www` → the Railway-provided URL
-
----
-
-## Option D — Render
-
-Similar to Railway.
-
-1. Push to GitHub (same as Option C Step 1)
-2. Go to [render.com](https://render.com) → New Web Service → Connect GitHub
-3. Set:
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn wsgi:app --workers 2 --threads 2 --timeout 120`
-4. Add environment variables (same as Railway Step 3)
-5. Add custom domain in Render settings
-
----
-
-## Updating the App (After First Deploy)
-
-### VPS
-```bash
-# Upload new files via SCP or Git pull
-cd /home/dstair/app
-git pull   # if you set up git on the server
-sudo systemctl restart dstair
-```
-
-### cPanel
-Upload changed files via File Manager/FTP, then restart in Setup Python App.
-
-### Railway / Render
-Just `git push` — they auto-redeploy.
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-|---------|-----|
-| `RuntimeError: FATAL: SECRET_KEY contains insecure default` | Set a real `SECRET_KEY` in `.env` |
-| 500 error on first visit | Run the database initialization command (Step 5/6) |
-| Static files not loading on VPS | Check nginx `alias /home/dstair/app/static/` path |
-| `ModuleNotFoundError` on cPanel | Run `pip install -r requirements.txt` in the activated virtualenv |
-| App crashes after server reboot | `sudo systemctl enable dstair` (VPS only) |
-| CSRF errors after deploy | Ensure `SECRET_KEY` is set and consistent |
 
 ---
 
 ## File Reference
 
 | File | Purpose |
-|------|---------|
-| `wsgi.py` | Universal WSGI entry — used by Gunicorn, Passenger, Railway, Render |
-| `passenger_wsgi.py` | Specific to GoDaddy cPanel Passenger |
-| `Procfile` | Railway / Render / Heroku process definition |
-| `runtime.txt` | Python version pin (Railway / Render) |
-| `deploy/nginx.conf` | Nginx reverse proxy config (VPS) |
-| `deploy/dstair.service` | systemd service unit (VPS) |
-| `deploy/setup_vps.sh` | Automated VPS first-time setup script |
+| --- | --- |
+| `passenger_wsgi.py` | Phusion Passenger entry point — cPanel looks for this exact name |
+| `instance/database.db` | SQLite database — tracked in git so seeded data ships with the code |
+| `.env` | Secret keys — created manually on the server, never committed |
+| `requirements.txt` | Python dependencies — installed into cPanel's virtualenv |
+| `config.py` | Reads `.env` vars; uses `ProductionConfig` when `FLASK_ENV=production` |

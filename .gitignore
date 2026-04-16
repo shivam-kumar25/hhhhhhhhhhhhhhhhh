@@ -21,8 +21,10 @@ ENV/
 .venv/
 
 # ── Flask / SQLite ──────────────────────────────────
-instance/
-*.db
+# Track the seeded database so it ships with the repo.
+# Ignore WAL/SHM lock files — they must never be committed.
+instance/*
+!instance/database.db
 *.sqlite3
 static/uploads/
 .pytest_cache_local/
