@@ -95,6 +95,47 @@ class Question(ActiveRecordMixin, db.Model):
     def __repr__(self):
         return f'<Question {self.id} Sphere:{self.sphere_id}>'
 
+    def serialize_comments_for_country(self, country: str):
+        """Like serialize_comments but scoped to a specific country via analysis_id."""
+        from models.user_models import User
+        from models.analysis_models import Analysis
+        from flask import g
+
+        # Collect analysis IDs that belong to this country
+        analysis_ids = {
+            a.id for a in db.session.query(Analysis.id)
+            .filter(Analysis.country == country).all()
+        }
+
+        country_comments = [
+            c for c in self.relational_comments
+            if c.analysis_id in analysis_ids
+        ]
+
+        if not hasattr(g, 'user_avatar_cache'):
+            g.user_avatar_cache = {}
+
+        usernames = {c.user_display for c in country_comments}
+        missing_users = [u for u in usernames if u not in g.user_avatar_cache]
+        if missing_users:
+            users = User.query.filter(User.user_account_unique_username_string.in_(missing_users)).all()
+            for u in users:
+                g.user_avatar_cache[u.user_account_unique_username_string] = u
+
+        results = []
+        for c in country_comments:
+            user = g.user_avatar_cache.get(c.user_display)
+            results.append({
+                'id': c.id,
+                'user': c.user_display,
+                'user_full_name': user.user_account_full_name_string if user else c.user_display,
+                'user_avatar': user.file_path_string_for_user_profile_avatar_image if user else None,
+                'comment': c.text,
+                'date': c.created_at.strftime('%m/%d/%Y %I:%M:%S %p') if c.created_at else '',
+                'analysis_id': c.analysis_id
+            })
+        return results
+
     @classmethod
     def get_all_with_comments(cls):
         from models.core_models import Comment

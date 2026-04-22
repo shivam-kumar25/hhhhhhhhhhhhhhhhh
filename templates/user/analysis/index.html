@@ -1110,13 +1110,9 @@
                     if (heading) heading.textContent = qText ? 'Q' + (data.question_order || '') + ' — ' + qText.substring(0, 80) + (qText.length > 80 ? '…' : '') : 'AI Analysis';
 
                     if (data.available) {
-                        // Map AI score → 1-7 rating cell
+                        // Scores are stored on the 1–7 scale — just round and clamp
                         let rawScore = parseFloat(data.score) || 0;
-                        let aiRating = rawScore;
-                        if (rawScore > 7) aiRating = Math.round(1 + (rawScore - 1) / 9 * 6); // 1-10 → 1-7
-                        else if (rawScore <= 1) aiRating = Math.round(rawScore * 7);                 // 0-1 → 1-7
-                        else aiRating = Math.round(rawScore);
-                        aiRating = Math.max(1, Math.min(7, aiRating));
+                        let aiRating = Math.max(1, Math.min(7, Math.round(rawScore)));
 
                         const minLbl = data.scale_min_label || 'Low';
                         const maxLbl = data.scale_max_label || 'High';
@@ -1177,7 +1173,7 @@
             if (!listEl) return;
             listEl.innerHTML = '<div class="tab-loading"><div class="tab-loading-spinner"></div></div>';
 
-            const url = COMMENTS_GET_URL.replace('/0/', '/' + questionId + '/');
+            const url = COMMENTS_GET_URL.replace('/0/', '/' + questionId + '/') + '?analysis_id=' + ANALYSIS_ID;
             fetch(url, { headers: { 'X-CSRFToken': CSRF_TOKEN } })
                 .then(r => r.json())
                 .then(data => {

@@ -378,9 +378,16 @@ def ai_context(question_id):
 @analysis_bp.route('/analysis/question/<int:question_id>/comments', methods=['GET'])
 @login_required
 def get_comments(question_id):
-    """AJAX: fetch all comments for a question."""
+    """AJAX: fetch comments for a question, scoped to the analysis country when analysis_id is provided."""
     from models.core_models import Question as QuestionModel
     question = QuestionModel.query.get_or_404(question_id)
+
+    analysis_id = request.args.get('analysis_id', type=int)
+    if analysis_id:
+        analysis = Analysis.get_by_id_and_user(analysis_id, current_user.unique_database_identifier_integer)
+        if analysis and analysis.country:
+            return jsonify({'success': True, 'comments': question.serialize_comments_for_country(analysis.country)})
+
     return jsonify({'success': True, 'comments': question.serialize_comments})
 
 

@@ -159,20 +159,21 @@
     user-select: none;
 }
 .av-collapse-btn {
-    background: rgba(0,0,0,0.06);
-    border: none;
+    background: #064E3B;
+    border: 1.5px solid #065f46;
     border-radius: 0.5rem;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #6b7280;
+    color: #ffffff;
     transition: background 0.15s, transform 0.3s;
     flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(6,78,59,0.25);
 }
-.av-collapse-btn:hover { background: rgba(0,0,0,0.12); }
+.av-collapse-btn:hover { background: #022C22; }
 .av-collapse-btn.av-collapsed { transform: rotate(-90deg); }
 .av-sphere-questions-body {
     overflow: hidden;
@@ -187,11 +188,12 @@
 <script>
 (function () {
     document.querySelectorAll('[data-av-toggle]').forEach(function (header) {
-        var body   = header.nextElementSibling;
+        var body    = header.nextElementSibling;
         var chevron = header.querySelector('[data-av-chevron]');
 
-        // Set initial max-height so transition works
-        body.style.maxHeight = body.scrollHeight + 'px';
+        // Start closed — CSS max-height:0 !important handles the hidden state
+        body.classList.add('av-collapsed');
+        chevron.classList.add('av-collapsed');
 
         header.addEventListener('click', function () {
             var collapsed = body.classList.contains('av-collapsed');
@@ -201,8 +203,7 @@
                 chevron.classList.remove('av-collapsed');
             } else {
                 body.style.maxHeight = body.scrollHeight + 'px';
-                // Force reflow before collapsing
-                body.offsetHeight;
+                body.offsetHeight; // force reflow before collapsing
                 body.classList.add('av-collapsed');
                 chevron.classList.add('av-collapsed');
             }
